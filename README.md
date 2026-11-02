@@ -14,7 +14,7 @@ GitHub Pages: deploy the `main` branch, root folder. `.nojekyll` bypasses Jekyll
 
 `config.js` contains only the Supabase project URL and its public publishable key. Run `supabase/setup.sql` once in the project's SQL editor. The private schema has no direct client access. The RPC functions require a random session token before reading or changing the budget. Passwords use bcrypt; session tokens are hashed at rest. Login attempts are limited. Sessions last one year and can be revoked with sign out.
 
-The initial shared login requested for development is admin / admin. Replace this weak password before entering real financial data. A database administrator can update `budget_private.account.password_hash` using `extensions.crypt(new_password, extensions.gen_salt('bf',12))` and revoke existing sessions. Never put a service role key or database password in the website.
+The shared login is stored only in the private database. `setup.sql` seeds temporary development credentials for a fresh installation; rotate them before real use. `supabase/change-login.sql` adds a credential-change RPC that requires a valid session and the current password, hashes the new password, and expires other sessions. Never put current credentials, a service role key, or a database password in the website.
 
 ## Behavior
 
@@ -27,3 +27,12 @@ The initial shared login requested for development is admin / admin. Replace thi
 - Install on iPhone through Safari → Share → Add to Home Screen. The in-app Install link gives instructions. On Chrome, use the installation prompt or browser menu.
 
 The required home-screen icon is a simple letter B and appears only as the device app icon; the interface has no logo or tagline.
+
+## Interaction and updates
+
+- Tap a category row to view its expenses and add directly to that category. Its separate ellipsis edits the category.
+- Activity shows the five most recent entries, with View all activity for the complete month.
+- Adds, edits and deletions show an Undo action for eight seconds. Undo uses the same offline queue as other changes.
+- Background sync renders only changed data and reuses existing elements, preserving focus, draft inputs, scroll position and progress bars. Press feedback and progress changes respect reduced-motion preferences.
+- Settings → App updates shows the running version and provides Check for updates / Update app. Updates are checked on launch and when returning online or reopening the app. A new worker waits for the user to apply it; background checks never reload the screen. Local changes must finish syncing before an update is applied.
+- Release procedure: change VERSION in updates.js and version.json, the worker cache name, all versioned imports, index asset URLs and worker FILES together.

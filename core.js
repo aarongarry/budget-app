@@ -35,3 +35,11 @@ export function totals(s,m) {
  return {limit:cats.filter(c=>!c.archived).reduce((n,c)=>n+c.limit,0),spent:entries.filter(e=>e.kind==='expense').reduce((n,e)=>n+e.amount,0),income:entries.filter(e=>e.kind==='income').reduce((n,e)=>n+e.amount,0),entries,cats};
 }
 export function cents(v) { const n=Number(v); if(!Number.isFinite(n)||n<0||n>99999999) throw Error('Enter a valid amount.'); return Math.round(n*100); }
+
+export function entryUndo(state,entry){
+ const previous=state.entries[entry.id];
+ return {type:'entry',entry:previous?structuredClone(previous):{...entry,deleted:true}};
+}
+export function recentEntries(entries,limit=Infinity){
+ return [...entries].reverse().sort((a,b)=>(b.recordedAt||b.created).localeCompare(a.recordedAt||a.created)).slice(0,limit);
+}
