@@ -73,5 +73,5 @@ window.addEventListener('online',()=>sync());window.addEventListener('offline',(
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
 window.addEventListener('storage',e=>{if(e.key===storageKey){try{const other=JSON.parse(e.newValue||'{}');token=other.token||'';base=other.base||empty();pending=other.pending||[];prefs={...prefs,...other.prefs};rebuild();render();}catch{}}});
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)modal.close();}});
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator){let reloadOnUpdate=Boolean(navigator.serviceWorker.controller);navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloadOnUpdate){reloadOnUpdate=false;location.reload();}});navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).catch(()=>{});}
 if(token){ensureThroughCurrent();persist();}render();sync();setInterval(()=>sync(),30000);
