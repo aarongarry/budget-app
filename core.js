@@ -31,8 +31,8 @@ export function monthOps(s,month) {
  }
  return ops;
 }
-export function totals(s,m) {
- const cats=orderCategories(categoriesForMonth(s,m),s.categoryOrder), entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
+export function totals(s,m,preview=false) {
+ const cats=orderCategories(s.months[m]?.categories||(preview?categoriesForMonth(s,m):[]),s.categoryOrder), entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
  return {limit:cats.filter(c=>!c.archived).reduce((n,c)=>n+c.limit,0),spent:entries.filter(e=>e.kind==='expense').reduce((n,e)=>n+e.amount,0),income:entries.filter(e=>e.kind==='income').reduce((n,e)=>n+e.amount,0),entries,cats};
 }
 export function cents(v) { const raw=String(v).trim(),n=Number(raw); if(!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(raw)||!Number.isFinite(n)||n<0||n>99999999) throw Error('Enter an amount with up to two decimal places.'); return Math.round(n*100); }

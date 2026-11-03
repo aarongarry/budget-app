@@ -12,10 +12,17 @@ test('Past months excludes the current month and all future months across a year
 test('Browsing a future month previews inherited limits without creating a saved month',()=>{
  const state={months:{'2026-11':{categories:[{id:'food',name:'Food',limit:10000,recurring:0}]}},entries:{}};
  const before=structuredClone(state),preview=categoriesForMonth(state,'2027-01');
- assert.equal(totals(state,'2027-01').limit,10000);
+ assert.equal(totals(state,'2027-01',true).limit,10000);
  preview[0].limit=20000;
  assert.deepEqual(state,before);
  assert.equal(state.months['2027-01'],undefined);
+});
+
+test('Unrecorded historical comparisons do not inherit preview categories',()=>{
+ const state={months:{'2026-11':{categories:[{id:'custom',name:'Custom category',limit:10000}]}},entries:{}};
+ assert.deepEqual(totals(state,'2026-10').cats,[]);
+ assert.equal(totals(state,'2026-10').limit,0);
+ assert.equal(totals(state,'2026-12',true).limit,10000);
 });
 
 test('Saved future plans retain their own category limits',()=>{
