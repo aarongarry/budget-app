@@ -47,3 +47,7 @@ The required home-screen icon is a simple letter B and appears only as the devic
 - Settings offers Light, Dark or Auto theme, and Normal or Larger text. These preferences are per device.
 - Category order is shared through Supabase and reused on the budget and category pills. Reordering changes presentation and preserves all monthly limits and history.
 - Summary amounts omit zero cents; fractional amounts and transaction rows keep cent precision.
+
+## History and future planning
+
+History lists only saved months strictly earlier than the current calendar month. Its month controls stop at the current month. Budget can still preview and edit future months. A future preview inherits the nearest earlier category limits without creating a saved month; saving an expense or category change creates the snapshot. Existing saved future budgets are preserved. Future snapshots do not prevent catch-up initialization of missing elapsed months.

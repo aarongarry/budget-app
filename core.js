@@ -32,7 +32,7 @@ export function monthOps(s,month) {
  return ops;
 }
 export function totals(s,m) {
- const cats=orderCategories(s.months[m]?.categories||[],s.categoryOrder), entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
+ const cats=orderCategories(categoriesForMonth(s,m),s.categoryOrder), entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
  return {limit:cats.filter(c=>!c.archived).reduce((n,c)=>n+c.limit,0),spent:entries.filter(e=>e.kind==='expense').reduce((n,e)=>n+e.amount,0),income:entries.filter(e=>e.kind==='income').reduce((n,e)=>n+e.amount,0),entries,cats};
 }
 export function cents(v) { const raw=String(v).trim(),n=Number(raw); if(!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(raw)||!Number.isFinite(n)||n<0||n>99999999) throw Error('Enter an amount with up to two decimal places.'); return Math.round(n*100); }
@@ -50,4 +50,17 @@ export function orderCategories(categories,ids=[]){
 }
 export function formatMoney(amount,summary=false){
  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:summary&&amount%100===0?0:2,maximumFractionDigits:2}).format(amount/100);
+}
+export function categoriesForMonth(state,month){
+ if(state.months[month])return structuredClone(state.months[month].categories);
+ const previous=Object.keys(state.months).filter(m=>m<month).sort().at(-1);
+ return structuredClone(previous?state.months[previous].categories:defaults);
+}
+export function historyMonths(state,current=monthNow()){
+ return Object.keys(state.months).filter(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)&&m<current).sort().reverse();
+}
+export function monthsToCatchUp(state,current=monthNow()){
+ const previous=Object.keys(state.months).filter(m=>m<=current).sort().at(-1),months=[];
+ for(let cursor=previous?shiftMonth(previous,1):current;cursor<=current&&months.length<1200;cursor=shiftMonth(cursor,1))months.push(cursor);
+ return months;
 }
