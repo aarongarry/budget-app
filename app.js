@@ -1,7 +1,8 @@
-import {config} from './config.js?v=1.2.0';
-import {renderHTML} from './dom.js?v=1.2.0';
-import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.2.0';
-import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries} from './core.js?v=1.2.0';
+import './gestures.js?v=1.2.1';
+import {config} from './config.js?v=1.2.1';
+import {renderHTML} from './dom.js?v=1.2.1';
+import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.2.1';
+import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries} from './core.js?v=1.2.1';
 const $=s=>document.querySelector(s), root=$('#app'), modal=$('#modal');
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n/100);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

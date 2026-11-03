@@ -36,3 +36,5 @@ The required home-screen icon is a simple letter B and appears only as the devic
 - Background sync renders only changed data and reuses existing elements, preserving focus, draft inputs, scroll position and progress bars. Press feedback and progress changes respect reduced-motion preferences.
 - Settings → App updates shows the running version and provides Check for updates / Update app. Updates are checked on launch and when returning online or reopening the app. A new worker waits for the user to apply it; background checks never reload the screen. Local changes must finish syncing before an update is applied.
 - Release procedure: change VERSION in updates.js and version.json, the worker cache name, all versioned imports, index asset URLs and worker FILES together.
+
+- The app surface allows vertical touch scrolling and blocks page pinch zoom, horizontal overflow and horizontal overscroll. Gesture-event and multi-touch fallbacks cover WebKit; trackpad pinch represented as Ctrl+wheel is also suppressed. Browser/OS navigation and accessibility magnification remain controlled by the platform.
