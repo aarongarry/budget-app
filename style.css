@@ -69,3 +69,5 @@ html[data-modal-locked=true] body{position:fixed;left:0;right:0;width:100%;overf
 dialog{overscroll-behavior:contain}
 .drag-handle{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;min-width:48px;padding:8px 12px}
 .drag-handle:active{cursor:grabbing}.order-row.dragging{background:var(--soft);border-radius:8px}.order-row.dragging .drag-handle{color:var(--text)}
+
+.order-row.dragging{position:relative;z-index:2;box-shadow:0 6px 18px #0002;outline:1px solid var(--line);will-change:transform}
