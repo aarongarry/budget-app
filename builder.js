@@ -1,4 +1,4 @@
-import {totals,cents,apply,categoriesForMonth} from './core.js?v=1.4.0';
+import {totals,cents,apply,categoriesForMonth} from './core.js?v=1.4.1';
 
 const KEY='budget-builder-draft-v1';
 export function createBuilder(state,month){

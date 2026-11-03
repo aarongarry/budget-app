@@ -1,10 +1,10 @@
-import './gestures.js?v=1.4.0';
-import {readDraft,writeDraft,clearDraft} from './drafts.js?v=1.4.0';
-import {createBuilder,projectBuilder,budgetOperations,readBuilder,persistBuilder,clearBuilder} from './builder.js?v=1.4.0';
-import {config} from './config.js?v=1.4.0';
-import {renderHTML} from './dom.js?v=1.4.0';
-import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.4.0';
-import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries,formatMoney,categoriesForMonth,historyMonths,monthsToCatchUp} from './core.js?v=1.4.0';
+import './gestures.js?v=1.4.1';
+import {readDraft,writeDraft,clearDraft} from './drafts.js?v=1.4.1';
+import {createBuilder,projectBuilder,budgetOperations,readBuilder,persistBuilder,clearBuilder} from './builder.js?v=1.4.1';
+import {config} from './config.js?v=1.4.1';
+import {renderHTML} from './dom.js?v=1.4.1';
+import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.4.1';
+import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries,formatMoney,categoriesForMonth,historyMonths,monthsToCatchUp} from './core.js?v=1.4.1';
 const $=s=>document.querySelector(s), root=$('#app'), modal=$('#modal');
 const money=n=>formatMoney(n), summaryMoney=n=>formatMoney(n,true);
 const systemTheme=matchMedia('(prefers-color-scheme: dark)');
@@ -76,7 +76,7 @@ function categoryDetails(id){
 function allActivity(){const t=totals(state,month,true);dialog('Activity',`<p class="hint">${monthLabel(month)} · ${t.entries.length} entries</p>${activity(t)}`,{type:'activity'});}
 function refreshDetail(){if(!modal.open||!detailView)return;const scroll=modal.scrollTop;if(detailView.type==='category')categoryDetails(detailView.id);else allActivity();modal.scrollTop=scroll;}
 function updateUpdateUI(){const message=$('#update-message');if(message)message.textContent=updateState.message;const check=$('[data-action="check-updates"]');if(check)check.disabled=updateState.checking||updateState.applying;const action=$('[data-action="apply-update"]');if(action){action.hidden=!updateState.available;action.disabled=updateState.applying;}}
-function updateAmountDisplay(){const input=modal.querySelector('.amount-input');if(!input||!modal.open)return;const chars=Math.max(1,(input.value||'0').length)+.25,available=input.parentElement.clientWidth-42,max=prefs.textSize==='large'?88:80;input.style.fontSize=Math.max(28,Math.min(max,available/(chars*.64)))+'px';input.style.width=chars+'ch';}
+function updateAmountDisplay(){const input=modal.querySelector('.amount-input');if(!input||!modal.open)return;const chars=Math.max(1,(input.value||'0').length)+.25,available=input.parentElement.clientWidth-92,max=prefs.textSize==='large'?88:80;input.style.fontSize=Math.max(28,Math.min(max,available/(chars*.64)))+'px';input.style.width=chars+'ch';}
 function updateVisibleViewport(){const viewport=window.visualViewport;document.documentElement.style.setProperty('--visual-height',(viewport?.height||window.innerHeight)+'px');document.documentElement.style.setProperty('--visual-top',(viewport?.offsetTop||0)+'px');document.documentElement.dataset.shortViewport=(viewport?.height||window.innerHeight)<600?'true':'false';updateAmountDisplay();}
 window.visualViewport?.addEventListener('resize',updateVisibleViewport);window.visualViewport?.addEventListener('scroll',updateVisibleViewport);window.addEventListener('resize',updateVisibleViewport);updateVisibleViewport();
 function saveDraft(){const f=$('#entry-form');if(!modal.open||!f||f.dataset.dirty!=='true')return;const d=new FormData(f);writeDraft({id:f.dataset.id,kind:f.dataset.kind,month:f.dataset.month,amount:d.get('amount'),category:d.get('category'),description:d.get('description')});}
@@ -90,13 +90,13 @@ function entryDialog(kind,id,selectedCategory=null,resume=null){
  if(kind==='expense'&&!cats.length){toast('Add a category first.');return;}
  const selected=draft?.category||existing?.category||selectedCategory, amount=draft?draft.amount:(existing?existing.amount/100:''),description=draft?draft.description:(existing?.description||'');
  const note=kind==='expense'?`<div class="entry-note"><label for="description">Description <span class="muted">(optional)</span></label><input id="description" name="description" type="text" maxlength="120" value="${esc(description)}" autocomplete="off"></div>`:'';
- dialog(`${existing?'Edit '+kind:'Add '+kind}<span class="flow-month">${monthLabel(month)}</span>`,`<form id="entry-form" data-id="${id||''}" data-kind="${kind}" data-month="${month}" data-dirty="false"><div class="flow-body"><div class="entry-main"><label class="sr-only" for="amount">Amount</label><div class="amount-entry"><span class="currency-prefix" aria-hidden="true">$</span><input class="amount-input" id="amount" name="amount" inputmode="decimal" type="text" maxlength="12" enterkeyhint="done" autocomplete="off" spellcheck="false" value="${esc(amount||'0')}" required></div>${kind==='expense'?`<fieldset class="category-choices"><legend>Category</legend><div class="category-pills">${cats.map(c=>`<label class="category-pill"><input type="radio" name="category" value="${esc(c.id)}" ${selected===c.id?'checked':''} required><span>${esc(c.name)}</span></label>`).join('')}</div></fieldset>`:''}${existing?'<button type="button" class="quiet discard-changes" data-action="discard-draft">Discard changes</button>':''}</div></div><div class="flow-actions">${note}<p class="error" role="alert"></p><div class="form-actions">${existing?'<button type="button" class="danger" data-action="delete-entry" data-id="'+id+'">Delete</button>':'<button type="button" class="quiet" data-action="discard-draft">Discard</button>'}<button class="primary" type="submit">${existing?'Save changes':'Add '+kind}</button></div></div></form>`);updateAmountDisplay();
+ dialog(`${existing?'Edit '+kind:'Add '+kind}<span class="flow-month">${monthLabel(month)}</span>`,`<form id="entry-form" data-id="${id||''}" data-kind="${kind}" data-month="${month}" data-dirty="false"><div class="flow-body"><div class="entry-main"><label class="sr-only" for="amount">Amount</label><div class="amount-entry"><span class="currency-prefix" aria-hidden="true">$</span><input class="amount-input" id="amount" name="amount" inputmode="decimal" type="text" maxlength="12" enterkeyhint="done" autocomplete="off" spellcheck="false" value="${esc(amount||'0')}" required><button type="button" class="amount-clear" data-action="clear-amount" aria-label="Clear amount"><span aria-hidden="true">×</span></button></div>${kind==='expense'?`<fieldset class="category-choices"><legend>Category</legend><div class="category-pills">${cats.map(c=>`<label class="category-pill"><input type="radio" name="category" value="${esc(c.id)}" ${selected===c.id?'checked':''} required><span>${esc(c.name)}</span></label>`).join('')}</div></fieldset>`:''}${existing?'<button type="button" class="quiet discard-changes" data-action="discard-draft">Discard changes</button>':''}</div></div><div class="flow-actions">${note}<p class="error" role="alert"></p><div class="form-actions">${existing?'<button type="button" class="danger" data-action="delete-entry" data-id="'+id+'">Delete</button>':'<button type="button" class="quiet" data-action="discard-draft">Discard</button>'}<button class="primary" type="submit">${existing?'Save changes':'Add '+kind}</button></div></div></form>`);updateAmountDisplay();
 
 }
 
 function openBuilder(){const saved=readBuilder();builder=saved?.month===month?saved:createBuilder(state,month);persistBuilder(builder);showBuilder();}
 function builderInput(){const f=$('#budget-builder-form');if(!builder||!f)return;const d=new FormData(f);if(builder.stage==='category'){const c=builder.categories[builder.index];if(c)builder.limits[c.id]=String(d.get('amount')||'');}if(builder.stage==='add')builder.addDraft={name:String(d.get('name')||''),amount:String(d.get('amount')||'')};persistBuilder(builder);}
-function builderAmount(value){return `<label class="sr-only" for="builder-amount">Monthly limit</label><div class="amount-entry" data-key="builder-amount-wrap"><span class="currency-prefix" aria-hidden="true">$</span><input class="amount-input" id="builder-amount" name="amount" type="text" inputmode="decimal" maxlength="12" autocomplete="off" enterkeyhint="done" value="${esc(value||'0')}" required></div>`;}
+function builderAmount(value){return `<label class="sr-only" for="builder-amount">Monthly limit</label><div class="amount-entry" data-key="builder-amount-wrap"><span class="currency-prefix" aria-hidden="true">$</span><input class="amount-input" id="builder-amount" name="amount" type="text" inputmode="decimal" maxlength="12" autocomplete="off" enterkeyhint="done" value="${esc(value||'0')}" required><button type="button" class="amount-clear" data-action="clear-amount" aria-label="Clear amount"><span aria-hidden="true">×</span></button></div>`;}
 function showBuilder(){
  if(!builder)return;let body='',actions='',projection=null;
  if(builder.stage==='category'){
@@ -150,6 +150,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
  if(act==='close'){saveDraft();modal.close();}
  if(act==='discard-draft'){clearFormDraft();modal.close();}
  if(act==='undo'&&undoAction){const undo=undoAction;undoAction=null;undo();}
+ if(act==='clear-amount'){const input=modal.querySelector('.amount-input');input.value='0';input.focus({preventScroll:true});input.setSelectionRange(1,1);updateAmountDisplay();const f=$('#entry-form');if(f){f.dataset.dirty='true';saveDraft();}else builderInput();}
  if(act==='build-budget')openBuilder();
  if(act==='builder-back'){try{builderBack();}catch(err){modal.querySelector('.error').textContent=err.message;}}
  if(act==='builder-add'){try{builderAdd();}catch(err){modal.querySelector('.error').textContent=err.message;}}
