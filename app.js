@@ -1,10 +1,11 @@
-import './gestures.js?v=1.4.1';
-import {readDraft,writeDraft,clearDraft} from './drafts.js?v=1.4.1';
-import {createBuilder,projectBuilder,budgetOperations,readBuilder,persistBuilder,clearBuilder} from './builder.js?v=1.4.1';
-import {config} from './config.js?v=1.4.1';
-import {renderHTML} from './dom.js?v=1.4.1';
-import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.4.1';
-import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries,formatMoney,categoriesForMonth,historyMonths,monthsToCatchUp} from './core.js?v=1.4.1';
+import {enableCategoryReorder} from './reorder.js?v=1.4.2';
+import './gestures.js?v=1.4.2';
+import {readDraft,writeDraft,clearDraft} from './drafts.js?v=1.4.2';
+import {createBuilder,projectBuilder,budgetOperations,readBuilder,persistBuilder,clearBuilder} from './builder.js?v=1.4.2';
+import {config} from './config.js?v=1.4.2';
+import {renderHTML} from './dom.js?v=1.4.2';
+import {VERSION,updateState,initializeUpdates,checkForUpdates,applyUpdate} from './updates.js?v=1.4.2';
+import {empty,apply,monthOps,monthNow,shiftMonth,monthLabel,totals,cents,entryUndo,recentEntries,formatMoney,categoriesForMonth,historyMonths,monthsToCatchUp} from './core.js?v=1.4.2';
 const $=s=>document.querySelector(s), root=$('#app'), modal=$('#modal');
 const money=n=>formatMoney(n), summaryMoney=n=>formatMoney(n,true);
 const systemTheme=matchMedia('(prefers-color-scheme: dark)');
@@ -52,11 +53,26 @@ function budget(){const t=totals(state,month,true);return `${monthHead()}<sectio
 const spent=t.entries.filter(e=>e.kind==='expense'&&e.category===c.id).reduce((n,e)=>n+e.amount,0), over=spent>c.limit;return `<div class="category" data-key="cat-${esc(c.id)}"><button class="category-summary" data-category-view="${esc(c.id)}" aria-label="Add expense to ${esc(c.name)}"><span><span class="category-name">${esc(c.name)}${c.archived?' <span class="muted">(archived)</span>':''}</span><span class="track"><span style="width:${c.limit?Math.min(spent/c.limit*100,100):(spent?100:0)}%;${over?'background:var(--danger)':''}"></span></span></span><span class="num">${summaryMoney(spent)}<small>of ${summaryMoney(c.limit)}</small></span><span class="num ${over?'negative':''}">${summaryMoney(Math.abs(c.limit-spent))}<small>${over?'over':'left'}</small></span></button><button data-category="${esc(c.id)}" aria-label="Edit ${esc(c.name)}">···</button></div>`}).join('')||'<p class="empty">Add a category to start your budget.</p>'}</section><section class="income-strip"><div><div class="eyebrow">Income this month</div><div class="hint">For reference</div></div><div class="income-actions"><strong>${summaryMoney(t.income)}</strong><button data-action="income">+ Add income</button></div></section><section><div class="section-head"><h2>Activity</h2><span class="muted">${t.entries.length} ${t.entries.length===1?'entry':'entries'}</span></div>${activity(t,5)}${t.entries.length>5?'<button class="quiet view-all" data-action="all-activity">View all activity</button>':''}</section>`;}
 function activity(t,limit=Infinity){return recentEntries(t.entries,limit).map(e=>`<div class="entry" data-key="entry-${esc(e.id)}"><div>${e.kind==='income'?'Income':esc(t.cats.find(c=>c.id===e.category)?.name||'Category')}<small>${e.description?esc(e.description)+' · ':''}${e.auto?'Recurring · ':''}${new Date(e.created).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</small></div><button data-entry="${esc(e.id)}" aria-label="Edit ${e.kind} ${money(e.amount)}">${e.kind==='income'?'+':''}${money(e.amount)} <span class="muted">↗</span></button></div>`).join('')||'<p class="empty">No entries this month.</p>';}
 function history(){const a=totals(state,month),prev=shiftMonth(month,-1),b=totals(state,prev),max=Math.max(a.spent,b.spent,1);const categories=[...new Map([...a.cats,...b.cats].map(c=>[c.id,c])).values()], sum=(t,c)=>t.entries.filter(e=>e.kind==='expense'&&e.category===c).reduce((n,e)=>n+e.amount,0);return `${monthHead(false)}<div class="stats"><div><div class="eyebrow">${month===monthNow()?'This month':'Selected month'}</div><div class="stat-value">${summaryMoney(a.spent)}</div></div><div><div class="eyebrow">Previous month</div><div class="stat-value">${summaryMoney(b.spent)}</div></div><div><div class="eyebrow">${a.spent>=b.spent?'More spending':'Less spending'}</div><div class="stat-value">${summaryMoney(Math.abs(a.spent-b.spent))}</div></div></div><div class="section-head"><h2>Month comparison</h2><select id="chart-type" aria-label="Chart style" style="width:130px;font-size:12px;min-height:36px">${[['bars','Bars'],['table','Table'],['off','Charts off']].map(([v,l])=>`<option value="${v}" ${prefs.chart===v?'selected':''}>${l}</option>`).join('')}</select></div><p class="hint">${monthLabel(month)} and ${monthLabel(prev)} · full month totals${!state.months[prev]?' · No entries recorded for the previous month.':''}</p>${prefs.chart==='bars'?`<div class="chart-area"><div class="chart-legend"><span><i class="key"></i>${monthLabel(month)}</span><span><i class="key previous"></i>${monthLabel(prev)}</span></div>${[{name:'Total spending',id:null},...categories].map(c=>{const x=c.id?sum(a,c.id):a.spent,y=c.id?sum(b,c.id):b.spent;return `<div class="bar-row"><span>${esc(c.name)}</span><div class="bars"><i style="width:${x/max*100}%"></i><i class="prev" style="width:${y/max*100}%"></i></div><span class="num">${summaryMoney(x)}<br><span class="muted">${summaryMoney(y)}</span></span></div>`}).join('')}</div>`:prefs.chart==='table'?`<table class="chart-table"><thead><tr><th>Category</th><th>This month</th><th>Previous</th></tr></thead><tbody>${categories.map(c=>`<tr><td>${esc(c.name)}</td><td>${summaryMoney(sum(a,c.id))}</td><td>${summaryMoney(sum(b,c.id))}</td></tr>`).join('')}</tbody></table>`:''}<div class="section-head"><h2>Past months</h2></div>${historyMonths(state).map(m=>`<div class="entry"><button class="quiet" data-month="${m}">${monthLabel(m)}</button><span>${summaryMoney(totals(state,m).spent)}</span></div>`).join('')||'<p class="empty">No past months yet.</p>'}`;}
-function categoryOrderSettings(){const cats=totals(state,month,true).cats.filter(c=>!c.archived);return `<section class="setting"><h2>Category order</h2><p>The same order is used on your budget and expense buttons.</p><div class="category-order">${cats.map((c,i)=>`<div class="order-row" data-key="order-${esc(c.id)}"><span>${esc(c.name)}</span><div class="order-controls"><button data-move-category="${esc(c.id)}" data-direction="-1" aria-label="Move ${esc(c.name)} up" ${i===0?'disabled':''}>↑</button><button data-move-category="${esc(c.id)}" data-direction="1" aria-label="Move ${esc(c.name)} down" ${i===cats.length-1?'disabled':''}>↓</button></div></div>`).join('')}</div></section>`;}
+function categoryOrderSettings(){const cats=totals(state,month,true).cats.filter(c=>!c.archived);return `<section class="setting"><h2>Category order</h2><p>Drag the handles to reorder. This order is used throughout your budget.</p><div class="category-order" role="list">${cats.map(c=>`<div class="order-row" role="listitem" data-order-id="${esc(c.id)}" data-key="order-${esc(c.id)}"><span>${esc(c.name)}</span><button class="drag-handle" data-drag-category="${esc(c.id)}" aria-label="Reorder ${esc(c.name)}" aria-description="Drag to reorder, or use the up and down arrow keys." aria-pressed="false"><span aria-hidden="true">⠿</span></button></div>`).join('')}</div></section>`;}
+
 function settings(){return `<div class="month-head"><h1>Settings</h1></div><div class="settings"><section class="setting"><h2>Appearance</h2><p>Choose a theme, or follow your device.</p><div class="segmented" role="group" aria-label="Theme">${[['light','Light'],['dark','Dark'],['system','Auto']].map(([t,label])=>`<button data-theme-choice="${t}" class="${prefs.theme===t?'active':''}" aria-pressed="${prefs.theme===t}">${label}</button>`).join('')}</div></section><section class="setting"><h2>Text size</h2><p>Choose what feels comfortable.</p><div class="segmented" role="group" aria-label="Text size">${[['normal','Normal'],['large','Larger']].map(([t,label])=>`<button data-text-size="${t}" class="${prefs.textSize===t?'active':''}" aria-pressed="${prefs.textSize===t}">${label}</button>`).join('')}</div></section><section class="setting"><h2>Accent color</h2><p>A small touch of color for progress and charts.</p><div class="swatches">${[['#527562','Sage'],['#667ea1','Blue'],['#ab8054','Sand'],['#9680a6','Lavender'],['#858585','Gray']].map(([v,l])=>`<button class="swatch ${prefs.accent===v?'active':''}" style="background:${v}" data-accent="${v}" aria-label="${l}" aria-pressed="${prefs.accent===v}"></button>`).join('')}</div></section><section class="setting"><h2>Monthly budget</h2><p>Set limits for ${monthLabel(month)}, one category at a time.</p><button data-action="build-budget">Build budget</button></section>${categoryOrderSettings()}<section class="setting"><h2>Recurring spending</h2><p>Set an automatic amount in a category’s settings. It posts once on the first of each month. Missed months are filled in when you next open the app.</p></section><section class="setting"><h2>Your data</h2><p>Changes are saved on this device and synced to your shared budget when online.</p><p id="sync" role="status">${esc(status||'Saved on device')}</p><div class="data-actions"><button data-action="export">Export backup</button><button data-action="sync">Sync now</button></div></section><section class="setting"><h2>App updates</h2><p>Version ${VERSION}</p><p id="update-message" role="status">${esc(updateState.message)}</p><div class="data-actions"><button data-action="check-updates" ${updateState.checking?'disabled':''}>Check for updates</button><button class="primary" data-action="apply-update" ${updateState.available?'':'hidden'} ${updateState.applying?'disabled':''}>Update app</button></div></section><section class="setting"><h2>Install Budget</h2><p>Keep it on your home screen or Mac dock.</p><button data-action="install">Install app</button></section><section class="setting"><button data-action="logout">Sign out</button><p>This removes this device’s local copy after all changes have synced.</p></section></div>`;}
 function render(){theme();document.body.dataset.page=token?tab:'login';if(!token){renderHTML(root,`<main class="login"><h1>Budget</h1><form id="login"><label for="username">Username</label><input id="username" name="username" autocomplete="username" required autocapitalize="none" spellcheck="false"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required><button class="primary" type="submit">Sign in</button><p class="error" id="login-error" role="alert"></p></form></main>`);return;}
  renderHTML(root,`<div class="shell">${header()}<main data-key="page-${tab}">${tab==='budget'?budget():tab==='history'?history():settings()}</main><footer class="foot"><span>USD · Shared budget</span></footer>${tab==='budget'?'<div class="mobile-actions"><button class="primary" data-action="expense">+ Add expense</button></div>':''}</div>`);}
+let lockedScroll=null;
+function lockPage(){
+ if(lockedScroll!==null)return;
+ lockedScroll={x:window.scrollX,y:window.scrollY};
+ document.documentElement.dataset.modalLocked='true';
+ document.body.style.top=-lockedScroll.y+'px';
+}
+function unlockPage(){
+ if(lockedScroll===null)return;
+ const position=lockedScroll;lockedScroll=null;
+ delete document.documentElement.dataset.modalLocked;document.body.style.top='';
+ window.scrollTo({left:position.x,top:position.y,behavior:'instant'});
+}
 function dialog(title,body,view=null,stable=false){
+ lockPage();
  document.body.dataset.modalOpen='true';detailView=view;
  const html=`<div class="dialog-head"><h2>${title}</h2><button class="quiet" data-action="close" aria-label="Close">×</button></div>${body}`;
  if(stable)renderHTML(modal,html);else modal.innerHTML=html;
@@ -141,7 +157,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
  if(b.dataset.category)categoryDialog(b.dataset.category);
  if(b.dataset.entry){const en=state.entries[b.dataset.entry];entryDialog(en.kind,en.id);}
  if(b.dataset.textSize){prefs.textSize=b.dataset.textSize;persist();render();}
- if(b.dataset.moveCategory){const ids=totals(state,month,true).cats.filter(c=>!c.archived).map(c=>c.id),i=ids.indexOf(b.dataset.moveCategory),to=i+Number(b.dataset.direction);if(i>=0&&to>=0&&to<ids.length){[ids[i],ids[to]]=[ids[to],ids[i]];change({type:'category-order',ids});}}
+
  if(b.dataset.themeChoice){prefs.theme=b.dataset.themeChoice;persist();render();}
  if(b.dataset.accent){prefs.accent=b.dataset.accent;persist();render();}
  if(b.dataset.builderEdit){const i=builder.categories.findIndex(c=>c.id===b.dataset.builderEdit);if(i>=0){builder.index=i;builder.stage='category';builder.returnToReview=true;}else{const c=builder.added.find(c=>c.id===b.dataset.builderEdit);if(!c){const current=totals(state,builder.month,true).cats.find(c=>c.id===b.dataset.builderEdit);builder.categories.push(current);builder.limits[current.id]=String(current.limit/100);builder.index=builder.categories.length-1;builder.stage='category';builder.returnToReview=true;persistBuilder(builder);showBuilder();return;}builder.editAdded=c.id;builder.addDraft={name:c.name,amount:c.amount};builder.returnStage='review';builder.stage='add';}persistBuilder(builder);showBuilder();}
@@ -183,7 +199,25 @@ window.addEventListener('storage',e=>{if(e.key===storageKey){try{const other=JSO
 modal.addEventListener('click',e=>{if(e.target===modal){const r=modal.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){saveDraft();modal.close();}}});
 modal.addEventListener('cancel',saveDraft);
 window.addEventListener('pagehide',saveDraft);
-modal.addEventListener('close',()=>{document.body.dataset.modalOpen='false';document.documentElement.dataset.flowOpen='false';detailView=null;render();});
+modal.addEventListener('close',()=>{document.body.dataset.modalOpen='false';document.documentElement.dataset.flowOpen='false';detailView=null;render();unlockPage();});
  document.addEventListener('budget-update-status',updateUpdateUI);
  initializeUpdates({sync,hasPending:()=>pending.length>0,isEditing:()=>modal.open,notify:toast});
 if(token){ensureThroughCurrent();persist();}render();(async()=>{await sync();if(token)restoreDraft();})();setInterval(()=>sync(),30000);
+
+enableCategoryReorder(root,ids=>change({type:'category-order',ids}));
+
+let modalTouchY=0;
+modal.addEventListener('touchstart',event=>{if(event.touches.length===1)modalTouchY=event.touches[0].clientY;},{passive:true});
+modal.addEventListener('touchmove',event=>{
+ if(event.touches.length!==1)return;
+ const y=event.touches[0].clientY,dy=y-modalTouchY;modalTouchY=y;
+ let element=event.target instanceof Element?event.target:null;
+ while(element&&modal.contains(element)){
+  const overflow=getComputedStyle(element).overflowY;
+  if(/auto|scroll/.test(overflow)&&element.scrollHeight>element.clientHeight+1){
+   if((dy<0&&element.scrollTop+element.clientHeight<element.scrollHeight-1)||(dy>0&&element.scrollTop>0))return;
+  }
+  element=element.parentElement;
+ }
+ if(event.cancelable)event.preventDefault();
+},{passive:false});

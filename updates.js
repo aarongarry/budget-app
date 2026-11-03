@@ -1,4 +1,4 @@
-export const VERSION = '1.4.1';
+export const VERSION = '1.4.2';
 export const updateState = { available: false, checking: false, applying: false, message: 'Check for the latest version.' };
 let registration, serverVersion = VERSION, lastCheck = 0, callbacks;
 const emit = () => document.dispatchEvent(new CustomEvent('budget-update-status'));
