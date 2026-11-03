@@ -1,5 +1,5 @@
-const CACHE = 'budget-1.3.2';
-const FILES = ['./', './index.html', './style.css?v=1.3.2', './app.js?v=1.3.2', './core.js?v=1.3.2', './config.js?v=1.3.2', './dom.js?v=1.3.2', './drafts.js?v=1.3.2', './gestures.js?v=1.3.2', './updates.js?v=1.3.2', './manifest.webmanifest', './icons/192.png', './icons/512.png'];
+const CACHE = 'budget-1.4.0';
+const FILES = ['./', './index.html', './style.css?v=1.4.0', './app.js?v=1.4.0', './core.js?v=1.4.0', './config.js?v=1.4.0', './dom.js?v=1.4.0', './drafts.js?v=1.4.0', './builder.js?v=1.4.0', './gestures.js?v=1.4.0', './updates.js?v=1.4.0', './manifest.webmanifest', './icons/192.png', './icons/512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(url => new Request(url, { cache: 'reload' })))));
   // Existing installations wait for the user to choose Update app.

@@ -16,6 +16,11 @@ export function apply(state,op) {
  if(op.type==='entry') s.entries[op.entry.id]=structuredClone(op.entry);
  if(op.type==='delete') delete s.entries[op.id];
  if(op.type==='category-order') s.categoryOrder=[...new Set([...op.ids,...(s.categoryOrder||[])])];
+ if(op.type==='category-limit')for(const m of Object.keys(s.months).filter(m=>m>=op.month)){
+  const cats=s.months[m].categories,current=cats.find(c=>c.id===op.category.id);
+  if(current)current.limit=op.limit;
+  else cats.push({...structuredClone(op.category),limit:op.limit});
+ }
  return s;
 }
 export function monthOps(s,month) {

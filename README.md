@@ -51,3 +51,9 @@ The required home-screen icon is a simple letter B and appears only as the devic
 ## History and future planning
 
 History lists only saved months strictly earlier than the current calendar month. Its month controls stop at the current month. Budget can still preview and edit future months. A future preview inherits the nearest earlier category limits without creating a saved month; saving an expense or category change creates the snapshot. Existing saved future budgets are preserved. Future snapshots do not prevent catch-up initialization of missing elapsed months.
+
+## Full-screen entry and budget setup
+
+- Entry uses a flat full-screen canvas without a card border, backdrop blur, or button scaling. The description and confirmation actions are pinned in the visible viewport above the keyboard; only the category/amount area can scroll when space is limited.
+- Settings → Build budget walks through active categories in order, allows new categories and amounts during the walkthrough or review, and shows the projected total before Save budget. Closing preserves the device-local builder draft. No financial changes are queued until final confirmation.
+- Saving a builder applies category limits together in one revision-controlled update. Existing recurring amounts, names, archived flags and earlier months are preserved. Concurrently added categories remain part of the projected total.
