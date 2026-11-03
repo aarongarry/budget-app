@@ -15,6 +15,7 @@ export function apply(state,op) {
  if(op.type==='archive') for(const m of Object.keys(s.months).filter(m=>m>=op.month)) { const c=s.months[m].categories.find(c=>c.id===op.id); if(c)c.archived=true; }
  if(op.type==='entry') s.entries[op.entry.id]=structuredClone(op.entry);
  if(op.type==='delete') delete s.entries[op.id];
+ if(op.type==='category-order') s.categoryOrder=[...new Set([...op.ids,...(s.categoryOrder||[])])];
  return s;
 }
 export function monthOps(s,month) {
@@ -31,10 +32,10 @@ export function monthOps(s,month) {
  return ops;
 }
 export function totals(s,m) {
- const cats=s.months[m]?.categories||[], entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
+ const cats=orderCategories(s.months[m]?.categories||[],s.categoryOrder), entries=Object.values(s.entries).filter(e=>e.month===m && !e.deleted);
  return {limit:cats.filter(c=>!c.archived).reduce((n,c)=>n+c.limit,0),spent:entries.filter(e=>e.kind==='expense').reduce((n,e)=>n+e.amount,0),income:entries.filter(e=>e.kind==='income').reduce((n,e)=>n+e.amount,0),entries,cats};
 }
-export function cents(v) { const n=Number(v); if(!Number.isFinite(n)||n<0||n>99999999) throw Error('Enter a valid amount.'); return Math.round(n*100); }
+export function cents(v) { const raw=String(v).trim(),n=Number(raw); if(!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(raw)||!Number.isFinite(n)||n<0||n>99999999) throw Error('Enter an amount with up to two decimal places.'); return Math.round(n*100); }
 
 export function entryUndo(state,entry){
  const previous=state.entries[entry.id];
@@ -42,4 +43,11 @@ export function entryUndo(state,entry){
 }
 export function recentEntries(entries,limit=Infinity){
  return [...entries].reverse().sort((a,b)=>(b.recordedAt||b.created).localeCompare(a.recordedAt||a.created)).slice(0,limit);
+}
+export function orderCategories(categories,ids=[]){
+ const rank=new Map(ids.map((id,i)=>[id,i]));
+ return [...categories].sort((a,b)=>(rank.get(a.id)??Infinity)-(rank.get(b.id)??Infinity));
+}
+export function formatMoney(amount,summary=false){
+ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:summary&&amount%100===0?0:2,maximumFractionDigits:2}).format(amount/100);
 }

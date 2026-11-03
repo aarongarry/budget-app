@@ -30,11 +30,20 @@ The required home-screen icon is a simple letter B and appears only as the devic
 
 ## Interaction and updates
 
-- Tap a category row to view its expenses and add directly to that category. Its separate ellipsis edits the category.
+- Tap a category row to start an expense with that category selected. Its ellipsis opens category options, including View expenses.
 - Activity shows the five most recent entries, with View all activity for the complete month.
-- Adds, edits and deletions show an Undo action for eight seconds. Undo uses the same offline queue as other changes.
+- Only deleted expenses show an Undo action, for eight seconds. Adds and edits use a short confirmation with no Undo. Undo uses the same offline queue as other changes.
 - Background sync renders only changed data and reuses existing elements, preserving focus, draft inputs, scroll position and progress bars. Press feedback and progress changes respect reduced-motion preferences.
 - Settings → App updates shows the running version and provides Check for updates / Update app. Updates are checked on launch and when returning online or reopening the app. A new worker waits for the user to apply it; background checks never reload the screen. Local changes must finish syncing before an update is applied.
 - Release procedure: change VERSION in updates.js and version.json, the worker cache name, all versioned imports, index asset URLs and worker FILES together.
 
 - The app surface allows vertical touch scrolling and blocks page pinch zoom, horizontal overflow and horizontal overscroll. Gesture-event and multi-touch fallbacks cover WebKit; trackpad pinch represented as Ctrl+wheel is also suppressed. Browser/OS navigation and accessibility magnification remain controlled by the platform.
+
+## Comfort and entry
+
+- On phones, Add expense stays at the bottom of the Budget tab and hides while a dialog is open. Desktop keeps the heading action.
+- Expense and income entry use a borderless amount. Clicking Add expense or a category synchronously focuses the decimal input, allowing the phone to present its number keyboard. The dialog follows the visible viewport when the keyboard is open.
+- Unfinished entry drafts, including edits, are stored separately on the current device. They restore after reopening. Save clears the matching draft; Discard removes it without adding spending. Closing or pressing Escape keeps unfinished input.
+- Settings offers Light, Dark or Auto theme, and Normal or Larger text. These preferences are per device.
+- Category order is shared through Supabase and reused on the budget and category pills. Reordering changes presentation and preserves all monthly limits and history.
+- Summary amounts omit zero cents; fractional amounts and transaction rows keep cent precision.
